@@ -22,6 +22,66 @@
 - **Config file path:** `~/.claude/obsidian-vault.json`. **Env override:** `OBSIDIAN_VAULT`.
 - The six template names are exactly: `Area.md`, `Daily.md`, `Meeting.md`, `Permanent Note.md`, `Project.md`, `Resource.md` (note the space in `Permanent Note.md`).
 
+---
+
+## Execution progress
+
+**Paused 2026-08-05 after Task 5.** Tasks 1–5 are complete, reviewed clean, and committed.
+
+- **Branch:** `obsidian-vault-plugin` (branched from `main` at `1a58d4b`; nothing merged yet)
+- **Suite status:** 50 tests, 0 failures. Verified passing on a fresh `git clone` of the branch, not just the working tree.
+- **Ledger:** `.superpowers/sdd/progress.md` (git-ignored scratch; `git clean -fdx` destroys it — recover from `git log`)
+
+| Task | Status | Commits |
+| --- | --- | --- |
+| 1 — manifests + test harness | ✅ reviewed clean | `a5785e0` |
+| 2 — `wsl.js` | ✅ reviewed clean | `b22b423` |
+| 3 — `registry.js` + fixtures | ✅ reviewed clean | `9bf5977`, `6b45596`, `9221e0c` |
+| 4 — `glob.js` | ✅ reviewed clean | `6144d52` |
+| 5 — `config.js` | ✅ reviewed clean | `c0981f3` |
+| 6 — `resolve-vault.js` | ⬜ next | — |
+| 7 — SessionStart hook | ⬜ | — |
+| 8 — scaffolding + templates | ⬜ | — |
+| 9 — skill rewrite | ⬜ | — |
+| 10 — `/vault-setup` | ⬜ | — |
+| 11 — README + smoke test | ⬜ | — |
+
+### To resume
+
+Re-invoke `superpowers:subagent-driven-development` against this plan. It reads the ledger,
+sees Tasks 1–5 complete, and starts at Task 6. Do **not** re-dispatch a completed task.
+
+Suggested models, based on how Tasks 1–5 actually went: Haiku for Tasks 8–10 (the briefs
+contain complete content — transcription plus testing), Sonnet for Tasks 6, 7, and 11
+(composition, cross-platform shim, and end-to-end judgment). Haiku handled every
+mechanical task here without a single correction.
+
+### Corrections made to this plan during execution
+
+Three plan errors surfaced in the first five tasks. All are fixed above; noted here so a
+reader doesn't rediscover them.
+
+1. **`node --test test/` does not work** on this environment's Node 24.15.0 — a bare
+   directory argument is treated as a module entry point. `npm test` runs `node --test`
+   (auto-discovery); per-task steps use explicit files. Recorded in Global Constraints.
+2. **Task 3's fixture script produces empty directories**, and git cannot track those, so
+   the committed fixtures would have failed 7 tests on a fresh clone. Fixed with 8
+   `.gitkeep` files. **If you edit the fixture script, keep the `.gitkeep` markers.**
+3. **Task 5's Interfaces block listed `configPath({ env, home })`** while its code block
+   showed `configPath({ home })`. The code was right; `env` is unused. Interfaces
+   corrected.
+
+### Deferred Minor findings
+
+Not blocking, to be triaged by the final whole-branch review in Task 11:
+
+- `test/registry.test.js` — the dedup test uses byte-identical records, so the
+  "richer record wins" branch of the dedup comparator is never actually exercised.
+- `test/registry.test.js` — the `XDG_CONFIG_HOME` test asserts only `paths[0]`, where the
+  darwin/win32/linux tests assert the whole array.
+
+---
+
 ## File Structure
 
 | Path | Responsibility |
@@ -1013,7 +1073,7 @@ git commit -m "feat: add depth-limited scan for directories containing .obsidian
 **Interfaces:**
 - Consumes: nothing.
 - Produces:
-  - `configPath({ env, home })` → `string` — `<home>/.claude/obsidian-vault.json`.
+  - `configPath({ home })` → `string` — `<home>/.claude/obsidian-vault.json`. (No `env` parameter: the config path derives from `home` alone, and an unused parameter would violate the zero-overbuild constraint. Callers pass their whole opts object, so the extra keys are simply ignored.)
   - `readConfig(opts)` → `{ vaultPath, platform, configuredOn } | null` — `null` on missing file, unreadable file, malformed JSON, or a record without a string `vaultPath`.
   - `writeConfig(record, opts)` → `string` — creates `~/.claude/` if needed, writes pretty JSON, returns the path written.
 
