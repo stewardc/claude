@@ -70,6 +70,13 @@ reader doesn't rediscover them.
 3. **Task 5's Interfaces block listed `configPath({ env, home })`** while its code block
    showed `configPath({ home })`. The code was right; `env` is unused. Interfaces
    corrected.
+4. **Task 7's shim test used `execFileSync(shim, ...)` directly**, which fails with
+   `ENOEXEC`. `run-hook.cmd` is a polyglot whose byte 0 must be `:` so cmd.exe's heredoc
+   swallows the batch block — so it has no shebang and cannot be `execve`'d. (The upstream
+   `superpowers` shim it was modeled on has the same property.) It is invoked *through a
+   shell*, which handles `ENOEXEC` by rerunning the file with `sh`; that is how Claude Code
+   runs hook commands. The test now invokes it via `sh -c`. Adding a `#!/bin/sh` line was
+   rejected: cmd.exe would try to execute it and emit stderr noise before `@echo off`.
 
 ### Deferred Minor findings
 
