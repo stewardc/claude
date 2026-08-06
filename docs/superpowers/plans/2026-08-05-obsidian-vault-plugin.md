@@ -58,12 +58,13 @@ the real vault was a no-op.
 The redundant capture protocol has been removed from `~/.claude/CLAUDE.md` (backup at
 `~/.claude/CLAUDE.md.bak-2026-08-06`).
 
-**One check outstanding:** that the SessionStart hook fires *automatically*. The first
-`/clear` test was inconclusive — `~/.claude/CLAUDE.md` also named the vault path at the
-time, so the session had two possible sources. With that file now cleared, a repeat of the
-test is conclusive.
+The SessionStart hook is confirmed firing automatically: after `/clear`, a fresh session
+knew the vault path unprompted. The first attempt at this test was inconclusive, because
+`~/.claude/CLAUDE.md` still named the vault path and so gave the session a second possible
+source; the test was repeated after that file was cleared.
 
-Windows and WSL remain fixture-tested only; both still want a real-machine smoke test.
+**macOS is fully verified end to end.** Windows and WSL remain fixture-tested only; both
+still want a real-machine smoke test. Nothing else blocks merging.
 
 Windows and WSL remain fixture-tested only; both still want a real-machine smoke test.
 
