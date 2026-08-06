@@ -1,0 +1,13 @@
+{
+  "name": "obsidian-vault",
+  "version": "0.1.0",
+  "description": "Finds your Obsidian vault and proactively files decisions, plans, and todos into it from any directory. Cross-platform: macOS, Windows, WSL.",
+  "author": {
+    "name": "Chris Steward",
+    "email": "stewardc@gmail.com"
+  },
+  "homepage": "https://github.com/stewardc/claude",
+  "repository": "https://github.com/stewardc/claude",
+  "license": "MIT",
+  "keywords": ["obsidian", "notes", "knowledge-management", "para", "second-brain"]
+}
