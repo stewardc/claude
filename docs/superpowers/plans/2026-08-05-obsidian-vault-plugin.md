@@ -49,12 +49,21 @@
 
 ### What is left
 
-Task 11 **Step 6 cannot be done by an agent** — `/plugin marketplace add` and
-`/plugin install` are interactive slash commands. A human must run them, then `/clear` and
-confirm the `<obsidian-vault>` block appears. Only that round-trip proves the manifests,
-hook registration, and shim actually wire up. Task 11's follow-on (removing the
-now-redundant capture protocol from `~/.claude/CLAUDE.md`) is blocked on that check and on
-the user's consent, since that file is outside this repo.
+Task 11 Step 6 was completed by the user on 2026-08-06: the plugin was installed locally
+from this branch (`/plugin marketplace add /Users/stewardc/claude`, then
+`obsidian-vault@stewardc-claude`) and `/vault-setup` ran end to end. Manifests, command
+registration, and `${CLAUDE_PLUGIN_ROOT}` expansion are all confirmed working; scaffolding
+the real vault was a no-op.
+
+The redundant capture protocol has been removed from `~/.claude/CLAUDE.md` (backup at
+`~/.claude/CLAUDE.md.bak-2026-08-06`).
+
+**One check outstanding:** that the SessionStart hook fires *automatically*. The first
+`/clear` test was inconclusive — `~/.claude/CLAUDE.md` also named the vault path at the
+time, so the session had two possible sources. With that file now cleared, a repeat of the
+test is conclusive.
+
+Windows and WSL remain fixture-tested only; both still want a real-machine smoke test.
 
 Windows and WSL remain fixture-tested only; both still want a real-machine smoke test.
 
