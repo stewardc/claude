@@ -72,7 +72,11 @@ test('registryPaths honours XDG_CONFIG_HOME', () => {
     env: { XDG_CONFIG_HOME: '/home/me/.xdg' },
     home: '/home/me',
   }).map((p) => p.path);
-  assert.equal(paths[0], '/home/me/.xdg/obsidian/obsidian.json');
+  assert.deepEqual(paths, [
+    '/home/me/.xdg/obsidian/obsidian.json',
+    '/home/me/.var/app/md.obsidian.Obsidian/config/obsidian/obsidian.json',
+    '/home/me/snap/obsidian/current/.config/obsidian/obsidian.json',
+  ]);
 });
 
 test('registryPaths on wsl lists Linux-side paths before Windows-side ones', () => {
@@ -202,15 +206,51 @@ test('readRegistry returns an empty list when no registry exists', () => {
   assert.deepEqual(readRegistry({ platform: 'darwin', env: {}, home }), []);
 });
 
-test('readRegistry deduplicates a vault listed in two registries', () => {
-  const home = materialize('linux');
-  // Point flatpak at the same vault the XDG registry already lists.
+/**
+ * Write a second registry, at the flatpak location, listing the same vault the
+ * `linux` fixture's XDG registry already lists — but with a different record.
+ * Returns that shared vault path.
+ */
+function addFlatpakDuplicate(home, record) {
+  const xdgFile = path.join(home, '.config', 'obsidian', 'obsidian.json');
+  const vaultPath = Object.values(JSON.parse(fs.readFileSync(xdgFile, 'utf8')).vaults)[0].path;
   const flatpak = path.join(home, '.var', 'app', 'md.obsidian.Obsidian', 'config', 'obsidian');
   fs.mkdirSync(flatpak, { recursive: true });
   fs.writeFileSync(
     path.join(flatpak, 'obsidian.json'),
-    fs.readFileSync(path.join(home, '.config', 'obsidian', 'obsidian.json'))
+    JSON.stringify({ vaults: { dup: { path: vaultPath, ...record } } })
   );
+  return vaultPath;
+}
+
+test('readRegistry deduplicates a vault listed in two registries', () => {
+  const home = materialize('linux');
+  addFlatpakDuplicate(home, { ts: 1690000000000, open: true });
   const vaults = readRegistry({ platform: 'linux', env: {}, home });
   assert.equal(vaults.length, 1);
+});
+
+test('readRegistry keeps the richer of two records for the same vault', () => {
+  // XDG (read first) has open:true and a newer ts; the flatpak duplicate is
+  // poorer on both counts, so the first record must survive.
+  const home = materialize('linux');
+  addFlatpakDuplicate(home, { ts: 1600000000000, open: false });
+
+  const vaults = readRegistry({ platform: 'linux', env: {}, home });
+  assert.equal(vaults.length, 1);
+  assert.equal(vaults[0].id, 'c1', 'the open record wins over the closed one');
+  assert.equal(vaults[0].open, true);
+  assert.equal(vaults[0].ts, 1690000000000);
+});
+
+test('readRegistry lets a later, newer record displace an earlier one', () => {
+  // Both records are open, so the tie breaks on ts — and the newer one is the
+  // flatpak duplicate, read second.
+  const home = materialize('linux');
+  addFlatpakDuplicate(home, { ts: 1700000000000, open: true });
+
+  const vaults = readRegistry({ platform: 'linux', env: {}, home });
+  assert.equal(vaults.length, 1);
+  assert.equal(vaults[0].id, 'dup', 'the newer record replaces the older one');
+  assert.equal(vaults[0].ts, 1700000000000);
 });
