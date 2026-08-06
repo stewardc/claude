@@ -26,10 +26,11 @@
 
 ## Execution progress
 
-**Paused 2026-08-05 after Task 5.** Tasks 1–5 are complete, reviewed clean, and committed.
+**All 11 tasks implemented as of 2026-08-06.** Tasks 6–11 were executed with
+`superpowers:executing-plans` (single session, no subagents).
 
 - **Branch:** `obsidian-vault-plugin` (branched from `main` at `1a58d4b`; nothing merged yet)
-- **Suite status:** 50 tests, 0 failures. Verified passing on a fresh `git clone` of the branch, not just the working tree.
+- **Suite status:** 88 tests, 0 failures. Verified passing on a fresh `git clone` of the branch, not just the working tree.
 - **Ledger:** `.superpowers/sdd/progress.md` (git-ignored scratch; `git clean -fdx` destroys it — recover from `git log`)
 
 | Task | Status | Commits |
@@ -39,22 +40,23 @@
 | 3 — `registry.js` + fixtures | ✅ reviewed clean | `9bf5977`, `6b45596`, `9221e0c` |
 | 4 — `glob.js` | ✅ reviewed clean | `6144d52` |
 | 5 — `config.js` | ✅ reviewed clean | `c0981f3` |
-| 6 — `resolve-vault.js` | ⬜ next | — |
-| 7 — SessionStart hook | ⬜ | — |
-| 8 — scaffolding + templates | ⬜ | — |
-| 9 — skill rewrite | ⬜ | — |
-| 10 — `/vault-setup` | ⬜ | — |
-| 11 — README + smoke test | ⬜ | — |
+| 6 — `resolve-vault.js` | ✅ | `2598689`, `881c6df` |
+| 7 — SessionStart hook | ✅ | `eaff8fb` |
+| 8 — scaffolding + templates | ✅ | `8cf3444` |
+| 9 — skill rewrite | ✅ | `f31219d` |
+| 10 — `/vault-setup` | ✅ | `b6457ce` |
+| 11 — README + smoke test | ✅ (steps 1–5, 7) | `91ea6a1`, `dc7722e` |
 
-### To resume
+### What is left
 
-Re-invoke `superpowers:subagent-driven-development` against this plan. It reads the ledger,
-sees Tasks 1–5 complete, and starts at Task 6. Do **not** re-dispatch a completed task.
+Task 11 **Step 6 cannot be done by an agent** — `/plugin marketplace add` and
+`/plugin install` are interactive slash commands. A human must run them, then `/clear` and
+confirm the `<obsidian-vault>` block appears. Only that round-trip proves the manifests,
+hook registration, and shim actually wire up. Task 11's follow-on (removing the
+now-redundant capture protocol from `~/.claude/CLAUDE.md`) is blocked on that check and on
+the user's consent, since that file is outside this repo.
 
-Suggested models, based on how Tasks 1–5 actually went: Haiku for Tasks 8–10 (the briefs
-contain complete content — transcription plus testing), Sonnet for Tasks 6, 7, and 11
-(composition, cross-platform shim, and end-to-end judgment). Haiku handled every
-mechanical task here without a single correction.
+Windows and WSL remain fixture-tested only; both still want a real-machine smoke test.
 
 ### Corrections made to this plan during execution
 
@@ -80,12 +82,14 @@ reader doesn't rediscover them.
 
 ### Deferred Minor findings
 
-Not blocking, to be triaged by the final whole-branch review in Task 11:
+Both resolved in `dc7722e` during Task 11:
 
-- `test/registry.test.js` — the dedup test uses byte-identical records, so the
-  "richer record wins" branch of the dedup comparator is never actually exercised.
-- `test/registry.test.js` — the `XDG_CONFIG_HOME` test asserts only `paths[0]`, where the
-  darwin/win32/linux tests assert the whole array.
+- ~~`test/registry.test.js` — the dedup test uses byte-identical records, so the
+  "richer record wins" branch of the dedup comparator is never actually exercised.~~
+  Two tests now cover both branches (earlier record survives; later, newer record
+  displaces). Mutation-checked: replacing the comparator with `if (true)` fails the suite.
+- ~~`test/registry.test.js` — the `XDG_CONFIG_HOME` test asserts only `paths[0]`, where the
+  darwin/win32/linux tests assert the whole array.~~ Now asserts the whole array.
 
 ---
 
