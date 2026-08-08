@@ -1,6 +1,6 @@
 ---
 name: obsidian-vault
-description: Use when saving, capturing, looking up, or organizing notes, plans, ideas, meeting notes, decisions, journal entries, or reference material — or when the user refers to "my vault", "my notes", or "the vault". Also use proactively, without being asked, when a session produces a decision, a plan, or a todo list worth keeping.
+description: Use whenever a session produces a plan, a decision, a spec, or a todo list — including every exit from plan mode, and including work done inside a code repo, where these belong in the vault rather than in the repo. Use without being asked; do not wait for "save this". Also use when saving, capturing, looking up, or organizing notes, ideas, meeting notes, journal entries, or reference material, or when the user refers to "my vault", "my notes", or "the vault".
 ---
 
 # Obsidian Vault
@@ -27,6 +27,21 @@ permission every time, `/vault-setup` can add a vault-scoped allowlist rule.
 layout, tag and frontmatter conventions, and where project work is logged. Read it before
 your first write in a session. The rules below are the defaults it was seeded with — when
 it disagrees with them, it wins.
+
+## Plans belong in the vault, not the repo
+
+The most common way this skill gets missed: a planning session happens inside a code
+repo, and the plan is written to `docs/plans/` or `PLAN.md` there because that's the
+reflex. **Working in a repo is not a reason to file a plan in it.** Map the repo to its
+project folder and write the plan there instead.
+
+This applies to every plan-mode exit, every design doc, and every "here's how we'll do
+it" write-up — whether or not the user asked for it to be saved.
+
+Write a plan into the repo only when the user asked for an in-repo artifact: a committed
+design doc, an RFC, a README, something the team will review in the diff. When a plan
+genuinely belongs in both places, the vault note is canonical and the repo copy links
+back to it.
 
 ## Capture proactively
 

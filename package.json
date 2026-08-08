@@ -1,6 +1,6 @@
 {
   "name": "obsidian-vault-plugin",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Claude Code plugin that finds your Obsidian vault and files notes into it",
   "license": "MIT",
   "private": true,

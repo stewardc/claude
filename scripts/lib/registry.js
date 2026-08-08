@@ -3,7 +3,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { winToWslPath } = require('./wsl');
+const { winToWslPath, automountRoot } = require('./wsl');
 
 const LINUX_REGISTRY_SUFFIXES = [
   // XDG first — handled specially below because XDG_CONFIG_HOME can override it.
@@ -54,7 +54,8 @@ function listDirs(dir) {
 }
 
 /** Candidate obsidian.json locations for a platform, in priority order. */
-function registryPaths({ env = process.env, platform = process.platform, home = os.homedir(), mntRoot = '/mnt' } = {}) {
+function registryPaths({ env = process.env, platform = process.platform, home = os.homedir(), mntRoot } = {}) {
+  const root = mntRoot || automountRoot({ env });
   switch (platform) {
     case 'darwin':
       return [
@@ -69,7 +70,7 @@ function registryPaths({ env = process.env, platform = process.platform, home = 
     }
     case 'wsl':
       // Linux-side first: a native vault beats one on /mnt/c.
-      return [...linuxPaths(env, home), ...windowsSidePaths(mntRoot)];
+      return [...linuxPaths(env, home), ...windowsSidePaths(root)];
     case 'linux':
     default:
       return linuxPaths(env, home);
@@ -94,14 +95,18 @@ function parseRegistry(file) {
  * exist, deduplicated, and sorted open-first then most-recently-used first.
  */
 function readRegistry(opts = {}) {
-  const { exec, existsSync = fs.existsSync } = opts;
+  const { exec, env = process.env, existsSync = fs.existsSync } = opts;
   const found = [];
 
-  for (const { path: file, windowsSide } of registryPaths(opts)) {
+  // Resolved once and handed down so the wslpath-less fallback lands under the
+  // same mount root the registry paths were built from.
+  const mntRoot = opts.mntRoot || automountRoot({ env });
+
+  for (const { path: file, windowsSide } of registryPaths({ ...opts, mntRoot })) {
     for (const entry of parseRegistry(file)) {
       let resolved = entry.path;
       if (windowsSide) {
-        resolved = winToWslPath(entry.path, exec ? { exec } : {});
+        resolved = winToWslPath(entry.path, { mntRoot, ...(exec ? { exec } : {}) });
         if (!resolved) continue;
       }
       if (!existsSync(resolved)) continue;
