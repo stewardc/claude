@@ -97,22 +97,62 @@ test('the reported platform is the detected one', () => {
   );
 });
 
-test('the CLI prints valid JSON on stdout and exits 0', () => {
-  const { home, vault } = homeWithVault();
-  const out = execFileSync('node', [SCRIPT], {
-    encoding: 'utf8',
-    env: { ...process.env, HOME: home, OBSIDIAN_VAULT: '' },
+// The CLI is a subprocess: unlike the in-process tests above it cannot be
+// handed `platform`, so it detects the real one. Three consequences, all
+// handled by cliEnv() + homeWithVaultEverywhere():
+//   - the registry it reads depends on the host, so seed all of them;
+//   - on WSL it also scans <mntRoot>/*/Users/* for Windows-side registries,
+//     a path with no relation to HOME -- point mntRoot at an empty dir;
+//   - a stray OBSIDIAN_VAULT or XDG_CONFIG_HOME in the ambient env would win.
+
+/** A temp home carrying a registry for every platform's location at once. */
+function homeWithVaultEverywhere() {
+  const { home, vault } = homeWithVault(); // darwin registry + the vault itself
+  const registry = JSON.stringify({
+    vaults: { a1: { path: vault, ts: 1690000000000, open: true } },
   });
+
+  for (const parts of [
+    ['.config', 'obsidian'], // linux / wsl, via XDG_CONFIG_HOME below
+    ['AppData', 'Roaming', 'obsidian'], // win32, via APPDATA below
+  ]) {
+    const dir = path.join(home, ...parts);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'obsidian.json'), registry);
+  }
+
+  return { home, vault };
+}
+
+/** Env that pins every host-dependent lookup at the fixture home. */
+function cliEnv(home, overrides = {}) {
+  return {
+    ...process.env,
+    HOME: home,
+    USERPROFILE: home,
+    OBSIDIAN_VAULT: '',
+    XDG_CONFIG_HOME: path.join(home, '.config'),
+    APPDATA: path.join(home, 'AppData', 'Roaming'),
+    // An empty directory: no Windows-side registry exists under it, so a WSL
+    // host resolves from the fixture home like every other platform.
+    OBSIDIAN_VAULT_MNT_ROOT: fs.mkdtempSync(path.join(os.tmpdir(), 'obsmnt-')),
+    ...overrides,
+  };
+}
+
+test('the CLI prints valid JSON on stdout and exits 0', () => {
+  const { home, vault } = homeWithVaultEverywhere();
+  const out = execFileSync('node', [SCRIPT], { encoding: 'utf8', env: cliEnv(home) });
   const parsed = JSON.parse(out);
   assert.equal(parsed.vaultPath, vault);
   assert.equal(parsed.source, 'registry');
 });
 
 test('the CLI honours OBSIDIAN_VAULT and --all', () => {
-  const { home, vault } = homeWithVault();
+  const { home, vault } = homeWithVaultEverywhere();
   const out = execFileSync('node', [SCRIPT, '--all'], {
     encoding: 'utf8',
-    env: { ...process.env, HOME: home, OBSIDIAN_VAULT: vault },
+    env: cliEnv(home, { OBSIDIAN_VAULT: vault }),
   });
   const parsed = JSON.parse(out);
   assert.equal(parsed.source, 'env');
