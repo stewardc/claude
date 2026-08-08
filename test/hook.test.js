@@ -99,12 +99,25 @@ test('every config state exits 0', () => {
   }
 });
 
-test('hooks.json registers SessionStart for startup, clear, and compact via the shim', () => {
+test('hooks.json registers SessionStart for every session entry point via the shim', () => {
   const hooks = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'hooks', 'hooks.json'), 'utf8'));
   const entry = hooks.hooks.SessionStart[0];
-  assert.equal(entry.matcher, 'startup|clear|compact');
+  // `resume` matters as much as `startup`: without it, every `claude --resume`
+  // and `claude -c` session runs with no vault context at all.
+  for (const source of ['startup', 'resume', 'clear', 'compact']) {
+    assert.ok(entry.matcher.split('|').includes(source), `matcher covers ${source}`);
+  }
   assert.match(entry.hooks[0].command, /run-hook\.cmd/);
   assert.match(entry.hooks[0].command, /session-start\.js/);
+  assert.match(entry.hooks[0].command, /CLAUDE_PLUGIN_ROOT/);
+});
+
+test('hooks.json registers the plan-mode hook on ExitPlanMode via the shim', () => {
+  const hooks = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'hooks', 'hooks.json'), 'utf8'));
+  const entry = hooks.hooks.PreToolUse[0];
+  assert.equal(entry.matcher, 'ExitPlanMode');
+  assert.match(entry.hooks[0].command, /run-hook\.cmd/);
+  assert.match(entry.hooks[0].command, /plan-mode\.js/);
   assert.match(entry.hooks[0].command, /CLAUDE_PLUGIN_ROOT/);
 });
 
