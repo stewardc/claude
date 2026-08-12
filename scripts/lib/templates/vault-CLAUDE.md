@@ -37,6 +37,12 @@ behavior changes. Don't use PARA? Rewrite the table below.
   link target is the note's title (filename without `.md`).
 - **Atomic notes.** One idea per note in `Notes/`. Promote `#seedling` → `#evergreen`
   once a note stands on its own.
+- **`## Task Summary`** is the first heading of any note organised into task sections
+  (`## Task 1 — …`), sitting immediately before `## Goal`: one checkbox per task, titled
+  after its heading, `[x]` only when every checkbox inside that task is checked. Keep it
+  in sync in the same edit that ticks a task's checkbox. The task headings themselves keep
+  their `✅ DONE` / `⚠️ IN PROGRESS` markers — the summary duplicates that state so it's
+  scannable, it doesn't replace it.
 
 ## Where project work is logged
 
