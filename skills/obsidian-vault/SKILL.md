@@ -63,6 +63,34 @@ rather than lose it.
 **Be quiet about it.** This is part of the work, not a ceremony. One line — "logged that
 decision to the vault" — is enough.
 
+## Task Summary at the top of task-bearing notes
+
+Any note whose body is organised into tasks — plans and specs with `## Task 1 — …`
+headings, or a note with several task sections — carries a `## Task Summary` checklist as
+its **first heading**, immediately before `## Goal` (or before whatever the first content
+heading is, right after the title/date block):
+
+```markdown
+## Task Summary
+
+- [x] Task 1 — Point compose files at `$IMAGE_TAG`
+- [ ] Task 6 — Manual verification
+```
+
+- One checkbox per task section, in document order, using that section's heading text.
+- A task is `[x]` only when every checkbox inside it is checked; anything partial stays
+  `[ ]`. Note partial progress with a trailing `— in progress`, not a half-check.
+- **Task headings keep their own status markers** (`## Task 5 — … ✅ DONE`,
+  `⚠️ IN PROGRESS`) — the summary duplicates that state, it doesn't replace it. A reader
+  partway down the note must be able to see whether the task they're reading is done
+  without scrolling back to the top. Only the summary's own lines omit the marker, since
+  the checkbox already carries it there.
+- **Keep it in sync.** Whenever you check off a checkbox inside a task section, update the
+  summary in the same edit. When you add, remove, or retitle a task, mirror it.
+- Add the summary the first time you touch an existing task-bearing note that lacks one.
+- Single-task notes and plain `## Tasks` checklists don't need it — the list is already
+  the summary.
+
 ## Filing
 
 Match content to the role of a folder, not to a literal name — the vault's `CLAUDE.md`
